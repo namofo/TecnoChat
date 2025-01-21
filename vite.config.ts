@@ -8,11 +8,11 @@ export default defineConfig({
     exclude: ['lucide-react'],
   },
   server: {
-    port: parseInt(process.env.PORT || '3000'),
+    port: parseInt(process.env.PORT || '4173'),
     host: true
   },
   preview: {
-    port: parseInt(process.env.PORT || '3000'),
+    port: parseInt(process.env.PORT || '4173'),
     host: true
   }
 });
