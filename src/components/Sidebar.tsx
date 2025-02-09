@@ -11,6 +11,11 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
+  Zap,    // Nuevo
+  FileText,  // Nuevo
+  MessageCircle,  // Nuevo
+  Workflow,  // Nuevo
+  Briefcase,  // Nuevo
 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 
@@ -28,6 +33,19 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
     { icon: LayoutDashboard, text: 'Dashboard', path: '/' },
     { icon: Users, text: 'Contactos', path: '/contacts' },
     { icon: UserSquare2, text: 'Clientes', path: '/clients' },
+    
+    // Nuevas rutas CRUD
+    { icon: Zap, text: 'Configuración IA', path: '/ai-config' },
+    { icon: FileText, text: 'Documentos', path: '/business-documents' },
+    { icon: MessageCircle, text: 'Chatbots', path: '/chatbots' },
+    { icon: Workflow, text: 'Contexto Conversación', path: '/conversation-context' },
+    { icon: Users, text: 'Insights de Clientes', path: '/customer-insights' },
+    { icon: Workflow, text: 'Flujos', path: '/flows' },
+    { icon: Briefcase, text: 'Leads', path: '/leads' },
+    { icon: Settings, text: 'Productos y Servicios', path: '/products-services' },
+    { icon: Users, text: 'Bienvenidas', path: '/welcomes' },
+    { icon: Users, text: 'Seguimiento Bienvenidas', path: '/welcome-tracking' },
+
     { icon: Settings, text: 'Configuración', path: '/settings' },
     { icon: HelpCircle, text: 'Ayuda', path: '/help' },
   ];

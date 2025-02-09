@@ -8,6 +8,18 @@ import ClientsPage from './pages/clients/ClientsPage';
 import Login from './pages/Login';
 import Register from './pages/Register';
 
+// Importar nuevas páginas CRUD
+import AiConfigPage from './pages/ai-config/AiConfigPage';
+import BusinessDocumentsPage from './pages/business-documents/BusinessDocumentsPage';
+import ChatbotsPage from './pages/chatbots/ChatbotsPage';
+import ConversationContextPage from './pages/conversation-context/ConversationContextPage';
+import CustomerInsightsPage from './pages/customer-insights/CustomerInsightsPage';
+import FlowsPage from './pages/flows/FlowsPage';
+import LeadsPage from './pages/leads/LeadsPage';
+import ProductsServicesPage from './pages/products-services/ProductsServicesPage';
+import WelcomesPage from './pages/welcomes/WelcomesPage';
+import WelcomeTrackingPage from './pages/welcome-tracking/WelcomeTrackingPage';
+
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuthStore();
 
@@ -80,6 +92,109 @@ function App() {
             </PrivateRoute>
           }
         />
+
+        {/* Nuevas rutas CRUD */}
+        <Route
+          path="/ai-config"
+          element={
+            <PrivateRoute>
+              <Dashboard>
+                <AiConfigPage />
+              </Dashboard>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/business-documents"
+          element={
+            <PrivateRoute>
+              <Dashboard>
+                <BusinessDocumentsPage />
+              </Dashboard>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/chatbots"
+          element={
+            <PrivateRoute>
+              <Dashboard>
+                <ChatbotsPage />
+              </Dashboard>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/conversation-context"
+          element={
+            <PrivateRoute>
+              <Dashboard>
+                <ConversationContextPage />
+              </Dashboard>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/customer-insights"
+          element={
+            <PrivateRoute>
+              <Dashboard>
+                <CustomerInsightsPage />
+              </Dashboard>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/flows"
+          element={
+            <PrivateRoute>
+              <Dashboard>
+                <FlowsPage />
+              </Dashboard>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/leads"
+          element={
+            <PrivateRoute>
+              <Dashboard>
+                <LeadsPage />
+              </Dashboard>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/products-services"
+          element={
+            <PrivateRoute>
+              <Dashboard>
+                <ProductsServicesPage />
+              </Dashboard>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/welcomes"
+          element={
+            <PrivateRoute>
+              <Dashboard>
+                <WelcomesPage />
+              </Dashboard>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/welcome-tracking"
+          element={
+            <PrivateRoute>
+              <Dashboard>
+                <WelcomeTrackingPage />
+              </Dashboard>
+            </PrivateRoute>
+          }
+        />
+
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
       </Routes>
