@@ -1,119 +1,49 @@
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import { Plus, Pencil, Trash2, Loader2, Search } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
+import { useEffect, useState, useMemo } from 'react';
+import { Loader2, Plus, Pencil, Trash2, Search } from 'lucide-react';
 import { useChatbotsStore } from '../../store/chatbotsStore';
+import { supabase } from '../../lib/supabase';
 import type { Chatbot } from '../../types/database';
-import { useNavigate } from 'react-router-dom';
+import { Switch } from '../../components/ui/Switch';
 
-interface ChatbotFormData {
-  nombre: string;
-  estado: boolean;
+interface FormDataType extends Omit<Chatbot, 'id' | 'user_id' | 'created_at' | 'updated_at'> {
+  name_chatbot: string;
+  description: string;
+  is_active: boolean;
 }
 
-const initialFormData: ChatbotFormData = {
-  nombre: '',
-  estado: true
+const initialFormData: FormDataType = {
+  name_chatbot: '',
+  description: '',
+  is_active: true
 };
 
 export default function ChatbotsPage() {
-  const navigate = useNavigate();
-  const { 
-    chatbots = [], 
-    loading = false, 
-    error = null, 
-    fetchChatbots, 
-    createChatbot, 
-    updateChatbot, 
-    deleteChatbot 
-  } = useChatbotsStore();
+  const { chatbots, loading, error, fetchChatbots, createChatbot, updateChatbot, deleteChatbot } = useChatbotsStore();
   
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const [formData, setFormData] = useState<ChatbotFormData>(initialFormData);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [formData, setFormData] = useState(initialFormData);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState<string>('');
-  const [user, setUser] = useState<any>(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    const checkUser = async () => {
-      const { data } = await supabase.auth.getUser();
-      if (data.user) {
-        setUser(data.user);
-      } else {
-        navigate('/login');
+    const fetchData = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        await fetchChatbots();
+      } catch (error) {
+        console.error('Error loading data:', error);
       }
     };
 
-    checkUser();
-  }, [navigate]);
-
-  const filteredChatbots = useMemo(() => 
-    chatbots.filter(chatbot => 
-      JSON.stringify(chatbot).toLowerCase().includes(searchTerm.toLowerCase())
-    ), 
-    [chatbots, searchTerm]
-  );
-
-  const fetchChatbotsCallback = useCallback(async () => {
-    try {
-      await fetchChatbots();
-    } catch (err) {
-      console.error('Error fetching chatbots:', err);
-    }
-  }, [fetchChatbots]);
-
-  useEffect(() => {
-    if (user) {
-      fetchChatbotsCallback();
-    }
-  }, [user, fetchChatbotsCallback]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      console.log('Datos del formulario:', formData);
-      console.log('Usuario actual:', user);
-  
-      if (!formData.nombre.trim()) {
-        alert('El nombre es obligatorio');
-        return;
-      }
-  
-      if (!user) {
-        navigate('/login');
-        return;
-      }
-  
-      const chatbotToSave = {
-        ...formData,
-        user_id: user.id
-      };
-  
-      console.log('Chatbot a guardar:', chatbotToSave);
-  
-      try {
-        if (editingId) {
-          await updateChatbot(editingId, chatbotToSave);
-        } else {
-          await createChatbot(chatbotToSave);
-        }
-        
-        setIsModalOpen(false);
-        setFormData(initialFormData);
-        setEditingId(null);
-      } catch (storeError) {
-        console.error('Error en la tienda:', storeError);
-        alert(`Error al guardar: ${storeError instanceof Error ? storeError.message : 'Error desconocido'}`);
-      }
-    } catch (authError) {
-      console.error('Error de autenticación:', authError);
-      alert(`Error de autenticación: ${authError instanceof Error ? authError.message : 'Error desconocido'}`);
-    }
-  };
+    fetchData();
+  }, []);
 
   const handleEdit = (chatbot: Chatbot) => {
     setFormData({
-      nombre: chatbot.nombre,
-      estado: chatbot.estado
+      name_chatbot: chatbot.name_chatbot,
+      description: chatbot.description,
+      is_active: chatbot.is_active,
     });
     setEditingId(chatbot.id);
     setIsModalOpen(true);
@@ -125,13 +55,74 @@ export default function ChatbotsPage() {
         await deleteChatbot(id);
       } catch (error) {
         console.error('Error al eliminar chatbot:', error);
-        alert('No se pudo eliminar el chatbot');
+        alert('No se pudo eliminar el chatbot. Verifica los permisos.');
       }
     }
   };
 
-  if (!user) {
-    return null;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('No hay usuario autenticado');
+      }
+
+      const chatbotData = {
+        ...formData,
+        user_id: user.id
+      };
+
+      if (!validateForm(chatbotData)) return;
+
+      if (editingId) {
+        await updateChatbot(editingId, chatbotData);
+      } else {
+        await createChatbot(chatbotData);
+      }
+      
+      setIsModalOpen(false);
+      setFormData(initialFormData);
+      setEditingId(null);
+      fetchChatbots();
+    } catch (error) {
+      handleError(error);
+    }
+  };
+
+  const validateForm = (data: FormDataType): boolean => {
+    if (!data.name_chatbot.trim()) {
+      alert('El nombre del chatbot no puede estar vacío');
+      return false;
+    }
+    if (!data.description.trim()) {
+      alert('La descripción no puede estar vacía');
+      return false;
+    }
+    return true;
+  };
+
+  const handleError = (error: unknown) => {
+    console.error('Error:', error);
+    const message = error instanceof Error 
+      ? error.message 
+      : 'Ha ocurrido un error inesperado';
+    alert(message);
+  };
+
+  const filteredChatbots = useMemo(() => 
+    chatbots.filter(chatbot => 
+      JSON.stringify(chatbot).toLowerCase().includes(searchTerm.toLowerCase())
+    ),
+    [chatbots, searchTerm]
+  );
+
+  if (loading) {
+    return (
+      <div className="p-6 bg-gray-900 min-h-screen text-white flex justify-center items-center">
+        <Loader2 className="animate-spin text-white" size={32} />
+      </div>
+    );
   }
 
   return (
@@ -149,112 +140,100 @@ export default function ChatbotsPage() {
             />
             <Search className="absolute right-3 top-3 text-gray-400" size={18} />
           </div>
-          <button 
-            onClick={() => {
-              setIsModalOpen(true);
-              setEditingId(null);
-              setFormData(initialFormData);
-            }}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center"
-          >
+          <button onClick={() => { setIsModalOpen(true); setFormData(initialFormData); }} 
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center">
             <Plus className="mr-2" size={18} /> Nuevo Chatbot
           </button>
         </div>
       </div>
 
-      {loading && (
-        <div className="flex justify-center items-center">
-          <Loader2 className="animate-spin text-white" size={32} />
-        </div>
-      )}
-
-      {error && (
-        <div className="bg-red-600 text-white p-4 rounded-md mb-4">
-          {error}
-        </div>
-      )}
-
-      {chatbots.length === 0 && !loading && (
-        <div className="text-center text-gray-400 mt-10">
-          No hay chatbots. Haga clic en "Nuevo Chatbot" para comenzar.
-        </div>
-      )}
-
+      {error && <div className="bg-red-600 text-white p-4 rounded-md mb-4">{error}</div>}
+      
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredChatbots.map((chatbot) => (
-          <div 
-            key={chatbot.id} 
-            className="bg-gray-800 rounded-lg p-4 shadow-md"
-          >
+          <div key={chatbot.id} className="bg-gray-800 rounded-lg p-4 shadow-md">
             <div className="flex justify-between items-center mb-2">
-              <h2 className="text-lg font-semibold truncate">{chatbot.nombre}</h2>
+              <div>
+                <h2 className="text-lg font-semibold">{chatbot.name_chatbot}</h2>
+                <p className="text-sm text-gray-400">{chatbot.description}</p>
+              </div>
               <div className="flex space-x-2">
-                <button 
-                  onClick={() => handleEdit(chatbot)}
-                  className="text-blue-400 hover:text-blue-300"
-                >
+                <button onClick={() => handleEdit(chatbot)} className="text-blue-400 hover:text-blue-300">
                   <Pencil size={18} />
                 </button>
-                <button 
-                  onClick={() => handleDelete(chatbot.id)}
-                  className="text-red-400 hover:text-red-300"
-                >
+                <button onClick={() => handleDelete(chatbot.id)} className="text-red-400 hover:text-red-300">
                   <Trash2 size={18} />
                 </button>
               </div>
             </div>
-
-            <div className="flex justify-between items-center">
-              <span 
-                className={`text-xs px-2 py-1 rounded ${
-                  chatbot.estado ? 'bg-green-600 text-green-100' : 'bg-red-600 text-red-100'
-                }`}
-              >
-                {chatbot.estado ? 'Activo' : 'Inactivo'}
-              </span>
+            
+            <div className="mt-2">
+              <Switch
+                checked={chatbot.is_active}
+                onChange={async (checked) => {
+                  try {
+                    await updateChatbot(chatbot.id, { is_active: checked });
+                    fetchChatbots();
+                  } catch (error) {
+                    console.error('Error al actualizar estado:', error);
+                  }
+                }}
+                label={chatbot.is_active ? 'Activo' : 'Inactivo'}
+              />
             </div>
           </div>
         ))}
       </div>
 
-      {/* Modal de creación/edición */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md">
+          <div className="bg-gray-800 p-6 rounded-lg w-full max-w-md">
             <h2 className="text-xl font-bold mb-4">
               {editingId ? 'Editar Chatbot' : 'Nuevo Chatbot'}
             </h2>
-            <form onSubmit={handleSubmit}>
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-2">Nombre</label>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block mb-2">Nombre</label>
                 <input
                   type="text"
-                  value={formData.nombre}
-                  onChange={(e) => setFormData({...formData, nombre: e.target.value})}
-                  className="w-full bg-gray-700 text-white px-3 py-2 rounded-md"
+                  value={formData.name_chatbot}
+                  onChange={(e) => setFormData({...formData, name_chatbot: e.target.value})}
+                  className="w-full bg-gray-700 text-white p-2 rounded-md"
                   required
                 />
               </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-2">Estado</label>
-                <select
-                  value={formData.estado.toString()}
-                  onChange={(e) => setFormData({...formData, estado: e.target.value === 'true'})}
-                  className="w-full bg-gray-700 text-white px-3 py-2 rounded-md"
-                >
-                  <option value="true">Activo</option>
-                  <option value="false">Inactivo</option>
-                </select>
+
+              <div>
+                <label className="block mb-2">Descripción</label>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData({...formData, description: e.target.value})}
+                  className="w-full bg-gray-700 text-white p-2 rounded-md"
+                  required
+                />
               </div>
+
+              <div>
+                <Switch
+                  checked={formData.is_active}
+                  onChange={(checked) => setFormData({ ...formData, is_active: checked })}
+                  label={formData.is_active ? 'Activo' : 'Inactivo'}
+                />
+              </div>
+
               <div className="flex justify-end space-x-4">
-                <button
+                <button 
                   type="button"
-                  onClick={() => setIsModalOpen(false)}
+                  onClick={() => {
+                    setIsModalOpen(false);
+                    setFormData(initialFormData);
+                    setEditingId(null);
+                  }}
                   className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md"
                 >
                   Cancelar
                 </button>
-                <button
+                <button 
                   type="submit"
                   className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
                 >

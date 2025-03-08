@@ -54,11 +54,12 @@ export interface BusinessDocument {
 
 export interface Chatbot {
   id: string;
-  created_at: string;
-  updated_at?: string;
   user_id: string;
-  nombre: string;
-  estado: boolean;
+  name_chatbot: string;
+  description: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface ConversationContext {
@@ -83,19 +84,21 @@ export interface CustomerInsight {
   interaction_count: number;
   metadata: Record<string, any>;
   created_at: string;
-  updated_at?: string;
+  updated_at: string;
 }
 
 // src/types/database.ts
-export interface Flow {
+export interface BotFlow {
   id: string;
   chatbot_id: string;
   user_id: string;
-  addkeyword: string;
-  addanswer: string;
-  archivo: string;
+  keyword: string[];  // Cambiado a array de strings
+  response_text: string;
+  media_url: string | null;
+  is_active: boolean;
+  priority: number;
   created_at: string;
-  updated_at?: string;
+  updated_at: string;
 }
 
 // src/types/database.ts
@@ -128,8 +131,22 @@ export interface ProductService {
 export interface Welcome {
   id: string;
   user_id: string;
-  welcomereply: string;
-  mediapath: string | null;
+  chatbot_id: string;
+  welcome_message: string;
+  media_url: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+// src/types/database.ts
+export interface BehaviorPrompt {
+  id: string;
+  user_id: string;
+  chatbot_id: string;
+  prompt_text: string;
+  embedding: number[] | null;
+  is_active: boolean;
   created_at: string;
   updated_at: string;
 }
