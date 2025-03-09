@@ -46,4 +46,29 @@ export class EmbeddingService {
       throw error;
     }
   }
+
+  static async createKnowledgePrompt(userId: string, chatbotId: string, promptText: string, category: string) {
+    try {
+      const embedding = await OpenAIService.generateEmbedding(promptText);
+      
+      const { data, error } = await supabase
+        .from('knowledge_prompts')
+        .insert({
+          user_id: userId,
+          chatbot_id: chatbotId,
+          prompt_text: promptText,
+          category: category,
+          embedding: embedding,
+          is_active: true
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error creating knowledge prompt:', error);
+      throw error;
+    }
+  }
 }

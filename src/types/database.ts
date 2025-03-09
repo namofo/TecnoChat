@@ -150,3 +150,16 @@ export interface BehaviorPrompt {
   created_at?: string;
   updated_at?: string;
 }
+
+// src/types/database.ts
+export interface KnowledgePrompt {
+  id: string;
+  user_id: string;
+  chatbot_id: string;
+  prompt_text: string;
+  embedding?: any;
+  category: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}

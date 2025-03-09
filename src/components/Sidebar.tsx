@@ -39,6 +39,7 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
     // Gestión de Chatbots
     { icon: Bot, text: 'Chatbots', path: '/chatbots' },
     { icon: Brain, text: 'Comportamientos IA', path: '/behaviors' },
+    { icon: FileText, text: 'Base de Conocimiento', path: '/knowledge' }, // Nueva ruta
     { icon: MessageCircle, text: 'Mensajes Bienvenida', path: '/welcomes' },
     { icon: Workflow, text: 'Flujos', path: '/flows' },
 

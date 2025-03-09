@@ -20,6 +20,7 @@ import LeadsPage from './pages/leads/LeadsPage';
 import ProductsServicesPage from './pages/products-services/ProductsServicesPage';
 import WelcomesPage from './pages/welcomes/WelcomesPage';
 import WelcomeTrackingPage from './pages/welcome-tracking/WelcomeTrackingPage';
+import KnowledgePage from './pages/knowledge/KnowledgePage';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuthStore();
@@ -80,6 +81,7 @@ function App() {
             </PrivateRoute>
           } 
         />
+        <Route path="/knowledge" element={<PrivateRoute><Dashboard><KnowledgePage /></Dashboard></PrivateRoute>} />
         <Route path="/welcomes" element={<PrivateRoute><Dashboard><WelcomesPage /></Dashboard></PrivateRoute>} />
         <Route path="/flows" element={<PrivateRoute><Dashboard><FlowsPage /></Dashboard></PrivateRoute>} />
         
