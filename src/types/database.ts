@@ -145,8 +145,8 @@ export interface BehaviorPrompt {
   user_id: string;
   chatbot_id: string;
   prompt_text: string;
-  embedding: number[] | null;
+  embedding?: any; // Hacer el embedding opcional
   is_active: boolean;
-  created_at: string;
-  updated_at: string;
+  created_at?: string;
+  updated_at?: string;
 }

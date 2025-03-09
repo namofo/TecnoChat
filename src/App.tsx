@@ -7,6 +7,7 @@ import ContactsPage from './pages/contacts/ContactsPage';
 import ClientsPage from './pages/clients/ClientsPage';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import BehaviorPage from './pages/behaviors/BehaviorPage';
 
 // Importar nuevas páginas CRUD
 import AiConfigPage from './pages/ai-config/AiConfigPage';
@@ -64,14 +65,24 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route
-          path="/"
+        {/* Rutas principales */}
+        <Route path="/" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+        
+        {/* Rutas de gestión de chatbot */}
+        <Route path="/chatbots" element={<PrivateRoute><Dashboard><ChatbotsPage /></Dashboard></PrivateRoute>} />
+        <Route 
+          path="/behaviors" 
           element={
             <PrivateRoute>
-              <Dashboard />
+              <Dashboard>
+                <BehaviorPage />
+              </Dashboard>
             </PrivateRoute>
-          }
+          } 
         />
+        <Route path="/welcomes" element={<PrivateRoute><Dashboard><WelcomesPage /></Dashboard></PrivateRoute>} />
+        <Route path="/flows" element={<PrivateRoute><Dashboard><FlowsPage /></Dashboard></PrivateRoute>} />
+        
         <Route
           path="/contacts"
           element={
@@ -115,16 +126,6 @@ function App() {
           }
         />
         <Route
-          path="/chatbots"
-          element={
-            <PrivateRoute>
-              <Dashboard>
-                <ChatbotsPage />
-              </Dashboard>
-            </PrivateRoute>
-          }
-        />
-        <Route
           path="/conversation-context"
           element={
             <PrivateRoute>
@@ -145,16 +146,6 @@ function App() {
           }
         />
         <Route
-          path="/flows"
-          element={
-            <PrivateRoute>
-              <Dashboard>
-                <FlowsPage />
-              </Dashboard>
-            </PrivateRoute>
-          }
-        />
-        <Route
           path="/leads"
           element={
             <PrivateRoute>
@@ -170,16 +161,6 @@ function App() {
             <PrivateRoute>
               <Dashboard>
                 <ProductsServicesPage />
-              </Dashboard>
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/welcomes"
-          element={
-            <PrivateRoute>
-              <Dashboard>
-                <WelcomesPage />
               </Dashboard>
             </PrivateRoute>
           }
