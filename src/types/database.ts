@@ -163,3 +163,14 @@ export interface KnowledgePrompt {
   created_at: string;
   updated_at: string;
 }
+
+// src/types/database.ts
+export interface Blacklist {
+  id: string;
+  phone_number: string;
+  chatbot_id: string;
+  user_id: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}

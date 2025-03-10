@@ -21,6 +21,7 @@ import ProductsServicesPage from './pages/products-services/ProductsServicesPage
 import WelcomesPage from './pages/welcomes/WelcomesPage';
 import WelcomeTrackingPage from './pages/welcome-tracking/WelcomeTrackingPage';
 import KnowledgePage from './pages/knowledge/KnowledgePage';
+import BlacklistPage from './pages/blacklist/BlacklistPage';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuthStore();
@@ -173,6 +174,16 @@ function App() {
             <PrivateRoute>
               <Dashboard>
                 <WelcomeTrackingPage />
+              </Dashboard>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/blacklist"
+          element={
+            <PrivateRoute>
+              <Dashboard>
+                <BlacklistPage />
               </Dashboard>
             </PrivateRoute>
           }

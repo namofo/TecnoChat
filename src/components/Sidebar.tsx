@@ -18,6 +18,7 @@ import {
   Briefcase,  // Nuevo
   Bot,  // Nuevo
   Brain,  // Nuevo
+  Ban,  // Nuevo
 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 
@@ -49,6 +50,7 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
     { icon: Users, text: 'Insights de Clientes', path: '/customer-insights' },
     { icon: Briefcase, text: 'Leads', path: '/leads' },
     { icon: Settings, text: 'Productos y Servicios', path: '/products-services' },
+    { icon: Ban, text: 'Lista Negra', path: '/blacklist' }, // Nueva ruta
     
     // Configuración
     { icon: Settings, text: 'Configuración', path: '/settings' },
