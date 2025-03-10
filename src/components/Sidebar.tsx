@@ -36,25 +36,18 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
 
   const menuItems = [
     { icon: LayoutDashboard, text: 'Dashboard', path: '/' },
-    { icon: Users, text: 'Contactos', path: '/contacts' },
-    { icon: UserSquare2, text: 'Clientes', path: '/clients' },
     
-    // Gestión de Chatbots
     { icon: Bot, text: 'Chatbots', path: '/chatbots' },
-    { icon: Brain, text: 'Comportamientos IA', path: '/behaviors' },
-    { icon: FileText, text: 'Base de Conocimiento', path: '/knowledge' }, // Nueva ruta
     { icon: MessageCircle, text: 'Mensajes Bienvenida', path: '/welcomes' },
     { icon: Workflow, text: 'Flujos', path: '/flows' },
+    
+    { icon: Brain, text: 'Comportamientos IA', path: '/behaviors' },
+    { icon: FileText, text: 'Base de Conocimiento', path: '/knowledge' },
+    
+    { icon: UserSquare2, text: 'Datos de Clientes', path: '/data-clients' },
+    { icon: Ban, text: 'Lista Negra', path: '/blacklist' },
 
-    // Otras rutas CRUD
-    { icon: FileText, text: 'Documentos', path: '/business-documents' },
-    { icon: Workflow, text: 'Contexto Conversación', path: '/conversation-context' },
-    { icon: Users, text: 'Insights de Clientes', path: '/customer-insights' },
-    { icon: Briefcase, text: 'Leads', path: '/leads' },
-    { icon: Settings, text: 'Productos y Servicios', path: '/products-services' },
-    { icon: Ban, text: 'Lista Negra', path: '/blacklist' }, // Nueva ruta
-    { icon: UserSquare2, text: 'Datos de Clientes', path: '/data-clients' }, // Agregar esta línea
-    { icon: QrCode, text: 'Código QR', path: '/qr' }, // Nueva ruta
+    { icon: QrCode, text: 'Código QR', path: '/qr' },
     
     // Configuración
     { icon: Settings, text: 'Configuración', path: '/settings' },
