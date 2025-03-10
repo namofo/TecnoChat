@@ -174,3 +174,16 @@ export interface Blacklist {
   created_at: string;
   updated_at: string;
 }
+
+// src/types/database.ts
+export interface ClientData {
+  id: string;
+  chatbot_id: string;
+  user_id: string;
+  identification_number: string;
+  full_name: string;
+  phone_number: string;
+  email: string;
+  media_url?: string | null;
+  created_at: string;
+}

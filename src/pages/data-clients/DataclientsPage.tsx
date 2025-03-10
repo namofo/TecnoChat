@@ -1,36 +1,70 @@
 import { useEffect, useState, useMemo } from 'react';
 import { Loader2, Plus, Pencil, Trash2, Search } from 'lucide-react';
-import { useChatbotsStore } from '../../store/chatbotsStore';
+import { useDataClientsStore } from '../../store/dataclientsStore';
 import { supabase } from '../../lib/supabase';
-import type { Chatbot } from '../../types/database';
-import { Switch } from '../../components/ui/Switch';
+import type { ClientData } from '../../types/database';
 
-interface FormDataType extends Omit<Chatbot, 'id' | 'user_id' | 'created_at' | 'updated_at'> {
+interface FormDataType extends Omit<ClientData, 'id' | 'user_id' | 'created_at'> {
+  chatbot_id: string;
+  identification_number: string;
+  full_name: string;
+  phone_number: string;
+  email: string;
+  media_url?: string;
+}
+
+interface ChatbotOption {
+  id: string;
   name_chatbot: string;
-  description: string;
   is_active: boolean;
 }
 
 const initialFormData: FormDataType = {
-  name_chatbot: '',
-  description: '',
-  is_active: true
+  chatbot_id: '',
+  identification_number: '',
+  full_name: '',
+  phone_number: '',
+  email: '',
+  media_url: ''
 };
 
-export default function ChatbotsPage() {
-  const { chatbots, loading, error, fetchChatbots, createChatbot, updateChatbot, deleteChatbot } = useChatbotsStore();
+export default function DataClientsPage() {
+  const { clientsData, loading, error, fetchClientsData, createClientData, updateClientData, deleteClientData } = useDataClientsStore();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState(initialFormData);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [chatbots, setChatbots] = useState<ChatbotOption[]>([]);
+
+  // Fetch chatbots for dropdown
+  const fetchChatbots = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('chatbots')
+        .select('id, name_chatbot, is_active')
+        .eq('user_id', user.id)
+        .eq('is_active', true);
+
+      if (error) throw error;
+      setChatbots(data || []);
+    } catch (error) {
+      console.error('Error al cargar chatbots:', error);
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
-        await fetchChatbots();
+        await Promise.all([
+          fetchClientsData(),
+          fetchChatbots()
+        ]);
       } catch (error) {
         console.error('Error loading data:', error);
       }
@@ -39,23 +73,26 @@ export default function ChatbotsPage() {
     fetchData();
   }, []);
 
-  const handleEdit = (chatbot: Chatbot) => {
+  const handleEdit = (clientData: ClientData) => {
     setFormData({
-      name_chatbot: chatbot.name_chatbot,
-      description: chatbot.description,
-      is_active: chatbot.is_active,
+      chatbot_id: clientData.chatbot_id,
+      identification_number: clientData.identification_number,
+      full_name: clientData.full_name,
+      phone_number: clientData.phone_number,
+      email: clientData.email,
+      media_url: clientData.media_url || ''
     });
-    setEditingId(chatbot.id);
+    setEditingId(clientData.id);
     setIsModalOpen(true);
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('¿Estás seguro de eliminar este chatbot?')) {
+    if (window.confirm('¿Estás seguro de eliminar este cliente?')) {
       try {
-        await deleteChatbot(id);
+        await deleteClientData(id);
       } catch (error) {
-        console.error('Error al eliminar chatbot:', error);
-        alert('No se pudo eliminar el chatbot. Verifica los permisos.');
+        console.error('Error al eliminar cliente:', error);
+        alert('No se pudo eliminar el cliente. Verifica los permisos.');
       }
     }
   };
@@ -68,35 +105,47 @@ export default function ChatbotsPage() {
         throw new Error('No hay usuario autenticado');
       }
 
-      const chatbotData = {
+      const clientData = {
         ...formData,
         user_id: user.id
       };
 
-      if (!validateForm(chatbotData)) return;
+      if (!validateForm(clientData)) return;
 
       if (editingId) {
-        await updateChatbot(editingId, chatbotData);
+        await updateClientData(editingId, clientData);
       } else {
-        await createChatbot(chatbotData);
+        await createClientData(clientData);
       }
       
       setIsModalOpen(false);
       setFormData(initialFormData);
       setEditingId(null);
-      fetchChatbots();
+      fetchClientsData();
     } catch (error) {
       handleError(error);
     }
   };
 
   const validateForm = (data: FormDataType): boolean => {
-    if (!data.name_chatbot.trim()) {
-      alert('El nombre del chatbot no puede estar vacío');
+    if (!data.chatbot_id) {
+      alert('Debe seleccionar un chatbot');
       return false;
     }
-    if (!data.description.trim()) {
-      alert('La descripción no puede estar vacía');
+    if (!data.identification_number.trim()) {
+      alert('El número de identificación no puede estar vacío');
+      return false;
+    }
+    if (!data.full_name.trim()) {
+      alert('El nombre completo no puede estar vacío');
+      return false;
+    }
+    if (!data.phone_number.trim() || !/^\d+$/.test(data.phone_number)) {
+      alert('El número de teléfono debe contener solo dígitos');
+      return false;
+    }
+    if (!data.email.trim() || !data.email.includes('@')) {
+      alert('Debe ingresar un correo electrónico válido');
       return false;
     }
     return true;
@@ -110,11 +159,11 @@ export default function ChatbotsPage() {
     alert(message);
   };
 
-  const filteredChatbots = useMemo(() => 
-    chatbots.filter(chatbot => 
-      JSON.stringify(chatbot).toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredClientsData = useMemo(() => 
+    clientsData.filter(clientData => 
+      JSON.stringify(clientData).toLowerCase().includes(searchTerm.toLowerCase())
     ),
-    [chatbots, searchTerm]
+    [clientsData, searchTerm]
   );
 
   if (loading) {
@@ -128,7 +177,7 @@ export default function ChatbotsPage() {
   return (
     <div className="p-6 bg-gray-900 min-h-screen text-white">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Chatbots</h1>
+        <h1 className="text-2xl font-bold">Datos de Clientes</h1>
         <div className="flex items-center space-x-4">
           <div className="relative">
             <input
@@ -142,7 +191,7 @@ export default function ChatbotsPage() {
           </div>
           <button onClick={() => { setIsModalOpen(true); setFormData(initialFormData); }} 
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center">
-            <Plus className="mr-2" size={18} /> Nuevo Chatbot
+            <Plus className="mr-2" size={18} /> Nuevo Cliente
           </button>
         </div>
       </div>
@@ -150,37 +199,37 @@ export default function ChatbotsPage() {
       {error && <div className="bg-red-600 text-white p-4 rounded-md mb-4">{error}</div>}
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredChatbots.map((chatbot) => (
-          <div key={chatbot.id} className="bg-gray-800 rounded-lg p-4 shadow-md">
+        {filteredClientsData.map((client) => (
+          <div key={client.id} className="bg-gray-800 rounded-lg p-4 shadow-md">
             <div className="flex justify-between items-center mb-2">
               <div>
-                <h2 className="text-lg font-semibold">{chatbot.name_chatbot}</h2>
-                <p className="text-sm text-gray-400">{chatbot.description}</p>
+                <p className="text-sm text-gray-400">
+                  Chatbot: {chatbots.find(c => c.id === client.chatbot_id)?.name_chatbot || 'No encontrado'}
+                </p>
+                <h3 className="text-lg font-semibold">{client.full_name}</h3>
+                <p className="text-sm">ID: {client.identification_number}</p>
+                <p className="text-sm">Tel: {client.phone_number}</p>
+                <p className="text-sm">{client.email}</p>
               </div>
               <div className="flex space-x-2">
-                <button onClick={() => handleEdit(chatbot)} className="text-blue-400 hover:text-blue-300">
+                <button onClick={() => handleEdit(client)} className="text-blue-400 hover:text-blue-300">
                   <Pencil size={18} />
                 </button>
-                <button onClick={() => handleDelete(chatbot.id)} className="text-red-400 hover:text-red-300">
+                <button onClick={() => handleDelete(client.id)} className="text-red-400 hover:text-red-300">
                   <Trash2 size={18} />
                 </button>
               </div>
             </div>
-            
-            <div className="mt-2">
-              <Switch
-                checked={chatbot.is_active}
-                onChange={async (checked) => {
-                  try {
-                    await updateChatbot(chatbot.id, { is_active: checked });
-                    fetchChatbots();
-                  } catch (error) {
-                    console.error('Error al actualizar estado:', error);
-                  }
-                }}
-                label={chatbot.is_active ? 'Activo' : 'Inactivo'}
-              />
-            </div>
+
+            {client.media_url && (
+              <div className="mt-2">
+                <img 
+                  src={client.media_url} 
+                  alt="Media" 
+                  className="w-full h-40 object-cover rounded-md"
+                />
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -189,35 +238,75 @@ export default function ChatbotsPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-gray-800 p-6 rounded-lg w-full max-w-md">
             <h2 className="text-xl font-bold mb-4">
-              {editingId ? 'Editar Chatbot' : 'Nuevo Chatbot'}
+              {editingId ? 'Editar Cliente' : 'Nuevo Cliente'}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block mb-2">Nombre</label>
+                <label className="block mb-2">ID del Chatbot</label>
+                <select
+                  value={formData.chatbot_id}
+                  onChange={(e) => setFormData({...formData, chatbot_id: e.target.value})}
+                  className="w-full bg-gray-700 text-white p-2 rounded-md"
+                  required
+                >
+                  <option value="">Seleccione un chatbot</option>
+                  {chatbots.map(chatbot => (
+                    <option key={chatbot.id} value={chatbot.id}>{chatbot.name_chatbot}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block mb-2">Número de Identificación</label>
                 <input
                   type="text"
-                  value={formData.name_chatbot}
-                  onChange={(e) => setFormData({...formData, name_chatbot: e.target.value})}
+                  value={formData.identification_number}
+                  onChange={(e) => setFormData({...formData, identification_number: e.target.value})}
                   className="w-full bg-gray-700 text-white p-2 rounded-md"
                   required
                 />
               </div>
 
               <div>
-                <label className="block mb-2">Descripción</label>
-                <textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData({...formData, description: e.target.value})}
+                <label className="block mb-2">Nombre Completo</label>
+                <input
+                  type="text"
+                  value={formData.full_name}
+                  onChange={(e) => setFormData({...formData, full_name: e.target.value})}
                   className="w-full bg-gray-700 text-white p-2 rounded-md"
                   required
                 />
               </div>
 
               <div>
-                <Switch
-                  checked={formData.is_active}
-                  onChange={(checked) => setFormData({ ...formData, is_active: checked })}
-                  label={formData.is_active ? 'Activo' : 'Inactivo'}
+                <label className="block mb-2">Número de Teléfono</label>
+                <input
+                  type="text"
+                  value={formData.phone_number}
+                  onChange={(e) => setFormData({...formData, phone_number: e.target.value})}
+                  className="w-full bg-gray-700 text-white p-2 rounded-md"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block mb-2">Correo Electrónico</label>
+                <input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({...formData, email: e.target.value})}
+                  className="w-full bg-gray-700 text-white p-2 rounded-md"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block mb-2">URL de Medios</label>
+                <input
+                  type="text"
+                  value={formData.media_url}
+                  onChange={(e) => setFormData({...formData, media_url: e.target.value})}
+                  className="w-full bg-gray-700 text-white p-2 rounded-md"
                 />
               </div>
 

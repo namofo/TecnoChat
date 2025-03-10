@@ -51,6 +51,7 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
     { icon: Briefcase, text: 'Leads', path: '/leads' },
     { icon: Settings, text: 'Productos y Servicios', path: '/products-services' },
     { icon: Ban, text: 'Lista Negra', path: '/blacklist' }, // Nueva ruta
+    { icon: UserSquare2, text: 'Datos de Clientes', path: '/data-clients' }, // Agregar esta línea
     
     // Configuración
     { icon: Settings, text: 'Configuración', path: '/settings' },

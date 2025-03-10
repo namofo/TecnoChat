@@ -1,83 +1,72 @@
-// src/store/chatbotsStore.ts
+// src/store/dataclientsStore.ts
 import { create } from 'zustand';
 import { supabase } from '../lib/supabase';
-import type { Chatbot } from '../types/database';
+import type { ClientData } from '../types/database';
 
-interface ChatbotsState {
-  chatbots: Chatbot[];
+interface DataClientsState {
+  clientsData: ClientData[];
   loading: boolean;
   error: string | null;
 }
 
-interface ChatbotsActions {
-  fetchChatbots: () => Promise<void>;
-  createChatbot: (chatbot: Omit<Chatbot, 'id' | 'created_at' | 'updated_at'>) => Promise<void>;
-  updateChatbot: (id: string, chatbot: Partial<Chatbot>) => Promise<void>;
-  deleteChatbot: (id: string) => Promise<void>;
-  updateChatbotOptimistic: (id: string, update: Partial<Chatbot>) => Promise<void>;
+interface DataClientsActions {
+  fetchClientsData: () => Promise<void>;
+  createClientData: (client: Omit<ClientData, 'id' | 'user_id' | 'created_at'>) => Promise<void>;
+  updateClientData: (id: string, client: Partial<ClientData>) => Promise<void>;
+  deleteClientData: (id: string) => Promise<void>;
 }
 
-type ChatbotsStore = ChatbotsState & ChatbotsActions;
+type DataClientsStore = DataClientsState & DataClientsActions;
 
-export const useChatbotsStore = create<ChatbotsStore>((set, get) => ({
-  chatbots: [],
+export const useDataClientsStore = create<DataClientsStore>((set, get) => ({
+  clientsData: [],
   loading: false,
   error: null,
 
-  fetchChatbots: async () => {
+  fetchClientsData: async () => {
     set({ loading: true, error: null });
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('No hay usuario autenticado');
 
       const { data, error } = await supabase
-        .from('chatbots')
+        .from('client_data')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-
-      set({ chatbots: data || [], loading: false });
+      set({ clientsData: data || [], loading: false });
     } catch (error) {
-      console.error('Error fetching chatbots:', error);
-      set({ 
-        error: error instanceof Error ? error.message : 'Error fetching chatbots', 
-        loading: false,
-        chatbots: []
-      });
+      handleStoreError(error, set);
     }
   },
 
-  createChatbot: async (chatbot) => {
+  createClientData: async (client) => {
     try {
       set({ loading: true, error: null });
       
-      if (!chatbot.name_chatbot || !chatbot.description) {
+      if (!client.chatbot_id || !client.full_name || !client.phone_number) {
         throw new Error('Faltan campos requeridos');
       }
 
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('No hay usuario autenticado');
 
-      const chatbotToInsert = {
-        ...chatbot,
-        user_id: user.id,
-        is_active: chatbot.is_active ?? true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
-
       const { data, error } = await supabase
-        .from('chatbots')
-        .insert([chatbotToInsert])
+        .from('client_data')
+        .insert([{
+          ...client,
+          user_id: user.id,
+          created_at: new Date().toISOString()
+        }])
         .select();
 
       if (error) throw error;
 
-      const currentChatbots = get().chatbots;
+      const currentClientsData = get().clientsData;
       set({ 
-        chatbots: data ? [data[0], ...currentChatbots] : currentChatbots,
+        clientsData: data ? [data[0], ...currentClientsData] : currentClientsData,
         loading: false 
       });
     } catch (error) {
@@ -85,20 +74,15 @@ export const useChatbotsStore = create<ChatbotsStore>((set, get) => ({
     }
   },
 
-  updateChatbot: async (id, chatbot) => {
+  updateClientData: async (id, client) => {
     set({ loading: true, error: null });
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('No hay usuario autenticado');
 
-      const updateData = {
-        ...chatbot,
-        updated_at: new Date().toISOString()
-      };
-
       const { data, error } = await supabase
-        .from('chatbots')
-        .update(updateData)
+        .from('client_data')
+        .update(client)
         .eq('id', id)
         .eq('user_id', user.id)
         .select();
@@ -106,31 +90,26 @@ export const useChatbotsStore = create<ChatbotsStore>((set, get) => ({
       if (error) throw error;
 
       if (!data || data.length === 0) {
-        throw new Error('No se encontró el chatbot');
+        throw new Error('No se encontró el cliente');
       }
 
       set({
-        chatbots: get().chatbots.map(c => c.id === id ? data[0] : c),
+        clientsData: get().clientsData.map(c => c.id === id ? data[0] : c),
         loading: false
       });
     } catch (error) {
-      console.error('Error al actualizar:', error);
-      set({ 
-        error: error instanceof Error ? error.message : 'Error al actualizar', 
-        loading: false 
-      });
-      throw error;
+      handleStoreError(error, set);
     }
   },
 
-  deleteChatbot: async (id) => {
+  deleteClientData: async (id) => {
     set({ loading: true, error: null });
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('No hay usuario autenticado');
 
       const { error } = await supabase
-        .from('chatbots')
+        .from('client_data')
         .delete()
         .eq('id', id)
         .eq('user_id', user.id);
@@ -138,37 +117,10 @@ export const useChatbotsStore = create<ChatbotsStore>((set, get) => ({
       if (error) throw error;
 
       set({
-        chatbots: get().chatbots.filter(c => c.id !== id),
+        clientsData: get().clientsData.filter(c => c.id !== id),
         loading: false
       });
     } catch (error) {
-      console.error('Error al eliminar:', error);
-      set({ 
-        error: error instanceof Error ? error.message : 'Error al eliminar', 
-        loading: false 
-      });
-      throw error;
-    }
-  },
-
-  updateChatbotOptimistic: async (id: string, update: Partial<Chatbot>) => {
-    const previousChatbots = get().chatbots;
-    
-    try {
-      set(state => ({
-        chatbots: state.chatbots.map(c => 
-          c.id === id ? { ...c, ...update } : c
-        )
-      }));
-
-      const { error } = await supabase
-        .from('chatbots')
-        .update(update)
-        .eq('id', id);
-
-      if (error) throw error;
-    } catch (error) {
-      set({ chatbots: previousChatbots });
       handleStoreError(error, set);
     }
   }
