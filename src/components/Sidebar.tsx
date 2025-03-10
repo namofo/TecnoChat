@@ -19,8 +19,10 @@ import {
   Bot,  // Nuevo
   Brain,  // Nuevo
   Ban,  // Nuevo
+  QrCode,  // Nuevo
 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
+import tecnochatLogo from '../assets/tecnochat.svg';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -52,6 +54,7 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
     { icon: Settings, text: 'Productos y Servicios', path: '/products-services' },
     { icon: Ban, text: 'Lista Negra', path: '/blacklist' }, // Nueva ruta
     { icon: UserSquare2, text: 'Datos de Clientes', path: '/data-clients' }, // Agregar esta línea
+    { icon: QrCode, text: 'Código QR', path: '/qr' }, // Nueva ruta
     
     // Configuración
     { icon: Settings, text: 'Configuración', path: '/settings' },
@@ -89,8 +92,12 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
         <div className="flex flex-col h-full p-4 relative">
           {/* Logo y título */}
           <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'space-x-2'} mb-8`}>
-            <Users className="h-8 w-8 text-emerald-500 flex-shrink-0" />
-            {!isCollapsed && <span className="text-xl font-bold">Contacts App</span>}
+            <img 
+              src={tecnochatLogo} 
+              alt="TecnoChat Logo" 
+              className="h-8 w-8 text-emerald-500 flex-shrink-0" 
+            />
+            {!isCollapsed && <span className="text-xl font-bold">TecnoChat</span>}
           </div>
 
           {/* Botón para colapsar en desktop */}

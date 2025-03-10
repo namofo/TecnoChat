@@ -187,3 +187,14 @@ export interface ClientData {
   media_url?: string | null;
   created_at: string;
 }
+
+// src/types/database.ts
+export interface AssignQR {
+  id: string;
+  url_qr: string;
+  port: string;
+  user_id: string;
+  is_assigned: boolean;
+  created_at: string;
+  updated_at: string;
+}

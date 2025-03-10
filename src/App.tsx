@@ -23,6 +23,7 @@ import WelcomeTrackingPage from './pages/welcome-tracking/WelcomeTrackingPage';
 import KnowledgePage from './pages/knowledge/KnowledgePage';
 import BlacklistPage from './pages/blacklist/BlacklistPage';
 import DataClientsPage from './pages/data-clients/DataclientsPage';
+import QRPage from './pages/qr/QRPage';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuthStore();
@@ -195,6 +196,16 @@ function App() {
             <PrivateRoute>
               <Dashboard>
                 <DataClientsPage />
+              </Dashboard>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/qr"
+          element={
+            <PrivateRoute>
+              <Dashboard>
+                <QRPage />
               </Dashboard>
             </PrivateRoute>
           }
